@@ -47,6 +47,32 @@ class AranduClient:
         data = result.data
         return data.copy() if isinstance(data, pd.DataFrame) else pd.DataFrame(data)
 
+    def alert_categories(self) -> list[dict[str, Any]]:
+        """Return the alert categories currently available from ADSS."""
+        return self._client.get_alert_categories()
+
+    def listen_alerts(
+        self,
+        categories: str | Sequence[str] = "all",
+        *,
+        replay: str | None = None,
+        limit: int | None = None,
+        follow: bool = True,
+        include_control_events: bool = False,
+    ) -> Iterator[dict[str, Any]]:
+        """Yield broker alerts from the ADSS Server-Sent Events stream.
+
+        Set ``replay='latest'`` to start from the latest available event, and
+        ``follow=False`` to consume only the replayed alerts.
+        """
+        yield from self._client.listen_alerts(
+            categories=categories,
+            replay=replay,
+            limit=limit,
+            follow=follow,
+            include_control_events=include_control_events,
+        )
+
     def objects(self, *, limit: int = 1_000) -> pd.DataFrame:
         """Return up to ``limit`` DIA objects."""
         return self.query(f"SELECT TOP {_positive_int(limit, 'limit')} * FROM arandu.dia_object")

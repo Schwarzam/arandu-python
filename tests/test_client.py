@@ -16,6 +16,10 @@ class FakeADSSClient:
         self.calls.append((sql, mode))
         return Result()
 
+    def listen_alerts(self, **kwargs):
+        self.calls.append(("listen_alerts", kwargs))
+        return iter([{"alert_id": 1}])
+
 
 def test_sources_queries_the_object_in_time_order():
     backend = FakeADSSClient()
@@ -63,3 +67,24 @@ def test_date_batches_use_non_overlapping_date_predicates():
     queries = [call[0] for call in backend.calls]
     assert "midpoint_mjd_tai >= 60000.0 AND midpoint_mjd_tai < 60001.0" in queries[0]
     assert "midpoint_mjd_tai >= 60001.0 AND midpoint_mjd_tai < 60002.0" in queries[1]
+
+
+def test_alert_listener_forwards_stream_options():
+    backend = FakeADSSClient()
+    alerts = list(
+        AranduClient(adss_client=backend).listen_alerts(
+            ["rapid-high-confidence"], replay="latest", follow=False
+        )
+    )
+
+    assert alerts == [{"alert_id": 1}]
+    assert backend.calls[0] == (
+        "listen_alerts",
+        {
+            "categories": ["rapid-high-confidence"],
+            "replay": "latest",
+            "limit": None,
+            "follow": False,
+            "include_control_events": False,
+        },
+    )
