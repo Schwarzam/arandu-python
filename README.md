@@ -15,13 +15,14 @@ pip install -e '.[cutouts]'
 ```python
 from arandu import AranduClient
 
-client = AranduClient.from_env()
+client = AranduClient()
 objects = client.objects(limit=100)
 sources = client.sources(dia_object_id=12345)
 ```
 
-Set `ARANDU_USERNAME` and `ARANDU_PASSWORD` before using `from_env()`. The
-optional `ARANDU_ADSS_BASE_URL` defaults to `https://ai-scope.cbpf.br`.
+`AranduClient()` prompts for credentials. Alternatively, set
+`ARANDU_USERNAME` and `ARANDU_PASSWORD` and use `AranduClient.from_env()`.
+The optional `ARANDU_ADSS_BASE_URL` defaults to `https://ai-scope.cbpf.br`.
 
 ```python
 from arandu import download_cutout
